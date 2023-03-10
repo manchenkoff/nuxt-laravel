@@ -1,3 +1,8 @@
+import User from "../models/User";
+
 export const useUser = () => {
-  return ref()
-}
+    const config = useRuntimeConfig();
+    const user = useState<User | null>(config.public.api.userKey, () => null);
+
+    return user;
+};

@@ -1,3 +1,7 @@
+import { ApiServiceContainer } from "../services/ApiServiceContainer";
+
 export const useApi = () => {
-  return ref()
-}
+    const { $api } = useNuxtApp();
+
+    return $api as ApiServiceContainer;
+};
