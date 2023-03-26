@@ -1,6 +1,7 @@
 import { appendHeader } from "h3";
 import { FetchOptions, FetchError } from "ofetch";
 import { splitCookiesString } from "set-cookie-parser";
+import ApiError from "../models/ApiError";
 import User from "../models/User";
 import { ApiServiceContainer } from "../services/ApiServiceContainer";
 import ApplicationService from "../services/ApplicationService";
@@ -10,11 +11,6 @@ const SECURE_METHODS = new Set(["post", "delete", "put", "patch"]);
 const UNAUTHENTICATED_STATUSES = new Set([401, 419]);
 const UNVERIFIED_USER_STATUS = 409;
 const VALIDATION_ERROR_STATUS = 422;
-
-export interface ApiError {
-    message: string;
-    exception?: string;
-}
 
 export default defineNuxtPlugin(async (nuxtApp) => {
     const event = useRequestEvent();
@@ -125,9 +121,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
                 apiConfig.redirectUnauthenticated &&
                 UNAUTHENTICATED_STATUSES.has(response.status)
             ) {
-                if (process.client) {
-                    await navigateTo(config.public.loginUrl);
-                }
+                await navigateTo(config.public.loginUrl);
 
                 return;
             }
@@ -136,16 +130,13 @@ export default defineNuxtPlugin(async (nuxtApp) => {
                 apiConfig.redirectUnverified &&
                 response.status === UNVERIFIED_USER_STATUS
             ) {
-                if (process.client) {
-                    await navigateTo(config.public.verificationUrl);
-                }
+                await navigateTo(config.public.verificationUrl);
 
                 return;
             }
 
             if (response.status === VALIDATION_ERROR_STATUS) {
-                const error = response._data as ApiError;
-                throw error;
+                throw new ApiError(response._data);
             }
         },
     };
